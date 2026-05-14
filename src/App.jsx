@@ -64,9 +64,11 @@ function App() {
   }
 
   const visibles = pokemons.filter((p) => {
+    if (mostrarCapturados) return true;
+
     const isCaptured = capturados.includes(p.id);
 
-    return mostrarCapturados ? true : !isCaptured;
+    return !isCaptured;
   });
 
   return (
