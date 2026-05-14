@@ -1,39 +1,73 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 
+import { pokemonList } from './data/pokemons';
+
+import {
+  collection,
+  addDoc,
+  deleteDoc,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
+
+import { db } from "./firebase";
+
 function App() {
   const [pokemons, setPokemons] = useState([]);
   const [mostrarCapturados, setMostrarCapturados] = useState(false);
+  const [capturados, setCapturados] = useState([]);
 
-  async function obtenerPokemons() {
-    const response = await fetch("http://localhost:3001/pokemons");
+  async function capturarPokemon(id) {
+    await addDoc(collection(db, "capturados"), {
+      pokemonId: id,
+    });
+  }
 
-    const data = await response.json();
+  async function liberarPokemon(id) {
+    const q = query(collection(db, "capturados"), where("pokemonId", "==", id));
 
-    setPokemons(data);
+    const snapshot = await getDocs(q);
+
+    snapshot.forEach(async (docItem) => {
+      await deleteDoc(docItem.ref);
+    });
+  }
+
+  async function obtenerCapturados() {
+    const snapshot = await getDocs(collection(db, "capturados"));
+
+    return snapshot.docs.map((doc) => doc.data().pokemonId);
   }
 
   useEffect(() => {
-    obtenerPokemons();
-  }, []);
+    async function cargar() {
+      setPokemons(pokemonList);
 
-  async function toggleCapturado(pokemon) {
-    if (pokemon.capturado) {
-      await fetch(`http://localhost:3001/capturar/${pokemon.id}`, {
-        method: "DELETE",
-      });
-    } else {
-      await fetch(`http://localhost:3001/capturar/${pokemon.id}`, {
-        method: "POST",
-      });
+      const capt = await obtenerCapturados();
+      setCapturados(capt);
     }
 
-    obtenerPokemons();
+    cargar();
+  }, []);
+
+  async function togglePokemon(pokemon) {
+    if (capturados.includes(pokemon.id)) {
+      await liberarPokemon(pokemon.id);
+    } else {
+      await capturarPokemon(pokemon.id);
+    }
+
+    const capt = await obtenerCapturados();
+    setCapturados(capt);
   }
 
-  const pokemonsFiltrados = mostrarCapturados
-    ? pokemons
-    : pokemons.filter((pokemon) => !pokemon.capturado);
+  const visibles = pokemons.filter((p) => {
+    const isCaptured = capturados.includes(p.id);
+
+    return mostrarCapturados ? true : !isCaptured;
+  });
 
   return (
     <div className="container">
@@ -59,7 +93,7 @@ function App() {
         </thead>
 
         <tbody>
-          {pokemonsFiltrados.map((pokemon) => (
+          {visibles.map((pokemon) => (
             <tr key={pokemon.id}>
               <td>{pokemon.id}</td>
 
@@ -76,8 +110,8 @@ function App() {
               <td>
                 <input
                   type="checkbox"
-                  checked={pokemon.capturado}
-                  onChange={() => toggleCapturado(pokemon)}
+                  checked={capturados.includes(pokemon.id)}
+                  onChange={() => togglePokemon(pokemon)}
                 />
               </td>
             </tr>
