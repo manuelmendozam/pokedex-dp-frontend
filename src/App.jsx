@@ -95,29 +95,32 @@ function App() {
         </thead>
 
         <tbody>
-          {visibles.map((pokemon) => (
-            <tr key={pokemon.id}>
-              <td>{pokemon.id}</td>
+          {visibles.map((pokemon) => {
+            const capturado = capturados.includes(pokemon.id);
+            return (
+              <tr key={pokemon.id} style={{ backgroundColor: capturado ? 'rgba(250, 160, 160, 0.2)' : 'white'}}>
+                <td>{pokemon.id}</td>
 
-              <td>
-                <img src={pokemon.imagen} alt={pokemon.nombre} />
-              </td>
+                <td>
+                  <img src={pokemon.imagen} alt={pokemon.nombre} />
+                </td>
 
-              <td>
-                <a href={pokemon.url} target="_blank" rel="noopener noreferrer">
-                  {pokemon.nombre}
-                </a>
-              </td>
+                <td>
+                  <a href={pokemon.url} target="_blank" rel="noopener noreferrer">
+                    {pokemon.nombre}
+                  </a>
+                </td>
 
-              <td>
-                <input
-                  type="checkbox"
-                  checked={capturados.includes(pokemon.id)}
-                  onChange={() => togglePokemon(pokemon)}
-                />
-              </td>
-            </tr>
-          ))}
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={capturado}
+                    onChange={() => togglePokemon(pokemon)}
+                  />
+                </td>
+              </tr>
+            )
+          })}
         </tbody>
       </table>
     </div>
