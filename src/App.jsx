@@ -74,7 +74,7 @@ function App() {
   return (
     <div className="container">
       <h1>Pokédex</h1>
-
+      <p>Faltan: {visibles.length}</p>
       <label className="toggle">
         <input
           type="checkbox"
